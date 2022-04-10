@@ -16,10 +16,9 @@
 Contents:
 - [Installation](#installation)
 - [Datasets](#datasets)
-- [Replication](#replication)
-    - [Encoder](#encoder)   
-    - [Decoder](#decoder) 
-    - [Generation](#generation)
+- [Encoder](#encoder)
+- [Decoder](#decoder) 
+- [Generation](#generation)
 
 ## TLDR
 
@@ -77,9 +76,7 @@ The ROC Stories dataset is already included.
 We use the dataset from [Infilling by Language Modeling (ILM)](https://github.com/chrisdonahue/ilm), as it's also one of the baselines we compare against for text infilling.
 
 
-## Replication
-
-### Encoder
+## Encoder
 **NOTE: I'm still figuring out where to upload the pretrained encoders (~100GB) cost-free and directly from the compute cluster I'm using (rather than scp-ing). Until then, you'll need to train the encoders from scratch...if folks have suggestions, don't hesitate to reach out! I want to make the code as accessible as possible. :)**
 
 The script for training the encoder can be found at [`language_modeling_via_stochastic_processes/scripts/final_encoder_scripts.sh`](https://github.com/rosewang2008/language_modeling_via_stochastic_processes/blob/main/language_modeling_via_stochastic_processes/scripts/final_encoder_scripts.sh)
@@ -92,7 +89,7 @@ python scripts/train_encoder.py --config-name=brownian_bridge wandb_settings.exp
 
 More information is under [language_modeling_via_stochastic_processes/models/README.md](language_modeling_via_stochastic_processes/models/README.md).
 
-### Decoder
+## Decoder
 
 For training the decoder, you'll need to be in directory `language_modeling_via_stochastic_processes/transformers/examples/pytorch/language-modeling/`.
 
@@ -118,7 +115,7 @@ Specifically, when decoding, I'm using the learned embeddings for running a forw
 ```
 
 
-### Generation
+## Generation
 ![](images/generation.png)
 
 For generating texts, you'll need to be in directory `language_modeling_via_stochastic_processes/transformers/examples/pytorch/text-generation/`.
