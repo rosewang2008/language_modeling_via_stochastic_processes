@@ -1,0 +1,41 @@
+wandb_settings:
+  exp_name: discourse_coherence
+  exp_dir: "/juice/scr/rewang/nonstationarity/code/experiments"
+  project: language_modeling_via_stochastic_processes
+  group: local_coherence_modelling
+  dryrun: True
+data_params:
+  name: wikisection
+  include_section_ids_in_tokenizer: True
+  train_path: "/nlp/scr/rewang/Wikisection/processed/HGD_en_city_train.json"
+  val_path: "/nlp/scr/rewang/Wikisection/processed/HGD_en_city_validation.json"
+  test_path: "/nlp/scr/rewang/Wikisection/processed/HGD_en_city_test.json"
+  data_seed: 1337
+  k: 5 # NOTE: 1, 5, 10
+model_params: 
+  encoder: cl # albert, bert, gpt2, sbert, simcse
+  latent_dim: 32 # 8, 16   
+  n_layers: 2
+  eps: 1e-6
+  hidden_size: 128
+  language_encoder: GPT2 
+  filepath: null
+  pretrained_name: null
+loss_params:
+  loss: BrownianBridgeLoss
+  name: simclr
+optim_params: 
+  batch_size: 8
+  decay_steps: 5e4
+  decay_factor: 0.1
+  learning_rate: 0.0001
+  moving_average_decay: 0.9999
+  momentum: 0.9
+experiment_params:
+  validate: True
+  checkpoint_epochs: 100
+  continue_from_checkpoint: True
+  num_epochs: 100
+  cuda: True
+  seed: 1337
+  data_loader_workers: 8
