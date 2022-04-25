@@ -69,17 +69,6 @@ def run(config):
     ## Evaluation:
     trainer.test(system)
 
-    ## Plot some trajectories...
-    recovery.get_recovery(
-        model=system.model,
-        dataset=system.train_dataset,
-        M=system.train_dataset.A,
-        dt=config.data_params.dt,
-        seed=config.seed,
-        objective_name=config.loss_params.name,
-        exp_name=config.wandb_params.exp_name
-    )
-
 def seed_everything(seed, use_cuda=True):
     random.seed(seed)
     torch.manual_seed(seed)
