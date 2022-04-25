@@ -20,40 +20,6 @@ import sys
 sys.path.append("../language-modeling/")
 from run_time_clm import get_special_tokens
 
-def get_classification_model(model_args):
-    model_path = model_args.classification_model
-    cache_dir = "/nlp/scr/rewang/huggingface/"
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
-    model = BertForSequenceClassification.from_pretrained(model_path)
-    model.to(model_args.device)
-    # tokenizer = AutoTokenizer.from_pretrained(
-    #     model_path,
-    #     cache_dir=cache_dir,
-    #     use_fast=True, # model_args.use_fast_tokenizer,
-    #     revision="main", # model_args.model_revision,
-    #     # use_auth_token=True if model_args.use_auth_token else None,
-    #     use_auth_token=None,
-    # )
-    # config = AutoConfig.from_pretrained(
-    #     # model_args.config_name if model_args.config_name else model_args.model_name_or_path,
-    #     model_path,
-    #     num_labels=4, # num_labels,
-    #     finetuning_task="wikisection", # data_args.task_name,
-    #     cache_dir=cache_dir,
-    #     revision="main",
-    #     use_auth_token=None, # True if model_args.use_auth_token else None,
-    # )
-    # model = AutoModelForSequenceClassification.from_pretrained(
-    #     model_path,
-    #     # model_args.model_name_or_path,
-    #     from_tf=bool(".ckpt" in model_path),
-    #     config=config,
-    #     cache_dir=cache_dir,
-    #     revision="main", # model_args.model_revision,
-    #     use_auth_token=None,
-    # )
-    return tokenizer, model
-
 class GenerationMetrics:
 
     def __init__(self, model, device, tokenizer, dataset_name, fname,
@@ -75,12 +41,10 @@ class GenerationMetrics:
             self.section_ids = self.section_ids[:-1]
         self._info = []
         self._examples = []
-        self._classification_examples = dict()
         self.metrics = defaultdict(lambda: [])
         self.examples = {}
         self.fname = fname
 
-        self.classification_tokenizer, self.classification_model = get_classification_model(model_args)
         self.mode = "section" if ("splitsection" in dataset_name) else "doc"
 
     def calculate(self, input_ids, raw_seq, section_name=None,
@@ -97,7 +61,6 @@ class GenerationMetrics:
         self._examples.append({'text': raw_seq})
 
     def _stories(self, input_ids, raw_seq):
-        # TODO get story classification
         # Check for redundancy in WP and Prompt
         info = {}
         for special_tok, name in zip([50257, 50258], ['[ WP ]', '[ RESPONSE ]']):
@@ -131,9 +94,6 @@ class GenerationMetrics:
 
     def _track_doc_examples(self, raw_seq):
         self.examples['ordering = {}'.format(self.metrics['ordering'][-1])] = raw_seq
-
-        for k, v in self._classification_examples.items():
-            self.examples[k] = v
 
         for section_i, section_name in enumerate(self.section_names):
             is_present = self.metrics['{} present'.format(section_name)]
@@ -185,19 +145,6 @@ class GenerationMetrics:
         self.metrics['total length'] = input_ids.shape[-1]
         info['total length'] = input_ids.shape[-1]
         return info
-
-    def _check_classification(self, raw_seq, info):
-        classification_results = self._get_classification(raw_seq)
-        histograms = dict()
-        for k, v in classification_results.items():
-            # if list, create a histogram and include mean
-            if isinstance(v, list):
-                histograms[self.prepend_ + k +  " hist"] = wandb.Histogram(v)
-                v = np.mean(v)
-            info[k] = v
-        wandb.log(histograms)
-        return info
-
 
     def _taskmaster_section_length(self, input_ids, idxs, section_name, info):
         lengths = []
@@ -300,8 +247,6 @@ class GenerationMetrics:
         info = {}
 
         info = self._check_total_length(input_ids=input_ids, info=info)
-        if 'taskmaster' not in self.dataset_name:
-            info = self._check_classification(raw_seq=raw_seq, info=info)
         info = self._check_ordering(input_ids=input_ids, raw_seq=raw_seq, info=info)
         for section_id, section_name in zip(self.section_ids, self.section_names):
             idxs = (input_ids == section_id).nonzero(as_tuple=True)
@@ -384,68 +329,6 @@ class GenerationMetrics:
                     most_recent[f'RANDOM/[ {s_name} ] length recent'] - most_recent[f'{s_name} GT'])
 
         wandb.log(most_recent)
-
-    def _get_classification(self, raw_seq):
-        results = defaultdict(lambda: [])
-        self._classification_examples = dict()
-        raw_seq = raw_seq.replace("<|endoftext|> ", "")
-        split_seq = raw_seq.split(". ")
-        sec_id = 0
-        seq_idxs = []
-        for seq_idx, seq in enumerate(split_seq):
-            if not seq:
-                continue
-            seq_idxs.append(seq_idx)
-            seq += "."
-            for tok in self.section_names:
-                if tok in seq:
-                    sec_id = self.section_names.index(tok)
-                    seq = seq.replace(tok+" ", "")
-                    try:
-                        assert tok not in seq
-                    except:
-                        seq = seq.replace(tok, "")
-
-            tokenized_seq = self.classification_tokenizer(seq, return_tensors='pt').to(
-                self.classification_model.device
-            )
-            result = self.classification_model(input_ids=tokenized_seq['input_ids'][:, :512])
-            probs = torch.nn.functional.softmax(result.logits, dim=1)
-
-            acc = int(torch.argmax(probs) == sec_id)
-            entropy = -torch.sum(probs * torch.log(probs)).detach().cpu().numpy()
-            prob_sec_id = probs[0, sec_id].detach().cpu().numpy()
-
-            # uniform_p = torch.tensor([0.25]*4)
-            # y_entropy = -torch.sum(uniform_p * torch.log(uniform_p))
-            # mi = float(y_entropy - entropy)
-
-            self.metrics["{} class acc".format(self.section_names[sec_id])].append(acc)
-            self.metrics["{} class entropy".format(self.section_names[sec_id])].append(entropy)
-            # self.metrics["{} MI".format(self.section_names[sec_id])].append(mi)
-            self.metrics["{} p(section_id*|x)".format(self.section_names[sec_id])].append(prob_sec_id)
-            results["{} class acc".format(self.section_names[sec_id])].append(acc)
-            results["{} class entropy".format(self.section_names[sec_id])].append(entropy)
-            # results["{} MI".format(self.section_names[sec_id])].append(mi)
-            results["{} p(section_id*|x)".format(self.section_names[sec_id])].append(prob_sec_id)
-
-            # sentences that are induce high/low acc/entropy/mi
-            for key, metric in zip(["{} class acc", "{} class entropy"], [acc, entropy,]):
-                key = key.format(self.section_names[sec_id])
-                if results[key] and max(results[key]) == metric:
-                    self._classification_examples[key + " MAX"] = seq
-                    self.metrics[key + " MAX IDX"].append(
-                        len(results["{} class acc".format(self.section_names[sec_id])]))
-                    results[key + " MAX IDX"].append(
-                        len(results["{} class acc".format(self.section_names[sec_id])]))
-                if results[key] and min(results[key]) == metric:
-                    self._classification_examples[key + " MIN"] = seq
-                    self.metrics[key + " MIN IDX"].append(
-                        len(results["{} class acc".format(self.section_names[sec_id])]))
-                    results[key + " MIN IDX"].append(
-                        len(results["{} class acc".format(self.section_names[sec_id])]))
-
-        return results
 
     def print_results(self):
         print("Examples")
