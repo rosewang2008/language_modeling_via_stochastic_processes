@@ -21,7 +21,7 @@ setup(
         "tensorflow==2.4.1",
         "torch",
         "torchvision",
-        "tqdm==4.49.0",
+        "tqdm==4.62.1",
         "wandb==0.10.23",
         "numpy",
         "Pillow",
