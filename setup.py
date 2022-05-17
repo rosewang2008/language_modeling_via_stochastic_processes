@@ -7,7 +7,7 @@ setup(
     packages=['language_modeling_via_stochastic_processes',],
     install_requires=[
         "dotmap==1.3.23",
-        "datasets=2.0.0",
+        "datasets==2.0.0",
         "hydra-core==1.1.1",
         "matplotlib==3.3.4",
         "numpy==1.19.2",
@@ -21,7 +21,7 @@ setup(
         "tensorflow==2.4.1",
         "torch",
         "torchvision",
-        "tqdm==4.49.0",
+        "tqdm==4.62.1",
         "wandb==0.10.23",
         "numpy",
         "Pillow",
