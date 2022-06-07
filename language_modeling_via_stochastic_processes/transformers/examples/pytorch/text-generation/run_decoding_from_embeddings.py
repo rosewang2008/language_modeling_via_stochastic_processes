@@ -88,7 +88,7 @@ def simulate_brownian_bridge(B_0, B_T, num_samples, sentence_lengths, dt=0.05, m
         x_tp1 = x_t * (1- dt/(1-t)) + (dt/(1-t))*B_T + noise
         length_idx = step % len(sentence_lengths)
         bridge += [x_tp1] * sentence_lengths[length_idx]
-        x_tp1 = x_t
+        x_t = x_tp1
 
     length_idx = step % len(sentence_lengths)
     bridge += [B_T] * sentence_lengths[length_idx]
