@@ -1,0 +1,47 @@
+{
+    "exp_base": null,
+    "exp_name": "ou",
+    "project": "timeseries",
+    "system": "OUSystem",
+    "cuda": true,
+    "gpu_device": 8,
+    "seed": 1337,
+    "data_loader_workers": 8,
+    "optimizer": {
+        "lr_scheduler": true
+    },
+    "eval_params": {
+        "seed": 0
+    },
+    "data_params": {
+        "name": "TimeSeriesData",
+        "data_dim": 2,
+        "hidden_dim": 2,
+        "data_seed": 1, 
+        "train_path": "/nlp/scr/rewang/nonstationarity/data/m4/Monthly-train.csv",
+        "test_path": "/nlp/scr/rewang/nonstationarity/data/m4/Monthly-test.csv",
+        "mu": 0,
+        "sigma": 1.0,
+        "dt": 0.01
+    },
+    "model_params": {
+        "n_layers": 2,
+        "eps": 1e-6
+    },
+    "loss_params": {
+        "loss": "OULoss",
+        "name": "simclr"
+    },
+    "optim_params": {
+        "batch_size": 512,
+        "decay_steps": 5e4,
+        "decay_factor": 0.1,
+        "learning_rate": 0.0001,
+        "moving_average_decay": 0.9999,
+        "momentum": 0.9
+    },
+    "validate": true,
+    "checkpoint_steps": 1e5,
+    "continue_from_checkpoint": true,
+    "num_epochs": 100
+}

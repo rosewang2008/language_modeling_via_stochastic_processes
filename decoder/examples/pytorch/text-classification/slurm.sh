@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# nlprun -n wikihow -g 1 'python run_classification.py --model_name_or_path=bert-base-cased --output_dir="wikihow_mini_c1" --project=wikihow_classification --dataset_name=wikihow --do_train --do_eval --per_device_train_batch_size=8 --seed=1 --num_train_epochs=20 --save_total_limit=1 --load_best_model_at_end=True --overwrite_output_dir --learning_rate=5e-6' -a nonstationarity
+# nlprun -n recipe 1 'python run_classification.py --model_name_or_path=bert-base-cased --output_dir="recipe_c1" --project=recipe_classification --dataset_name=recipe --do_train --do_eval --per_device_train_batch_size=8 --seed=1 --num_train_epochs=20 --save_total_limit=1 --load_best_model_at_end=True --overwrite_output_dir --learning_rate=5e-6' -a nonstationarity
+nlprun -n recipe 1 'python run_classification.py --model_name_or_path=bert-base-cased --output_dir="recipe_c1_short" --project=recipe_classification --dataset_name=recipe --do_train --do_eval --per_device_train_batch_size=8 --seed=1 --num_train_epochs=2 --save_total_limit=1 --load_best_model_at_end=True --overwrite_output_dir --learning_rate=5e-6' -a nonstationarity
+
+##### < STORIES > #####
+# nlprun -n story_classifier -g 1 'python run_story_classification.py --model_name_or_path=bert-base-cased --output_dir="stories_c1" --project=story_classification --dataset_name=stories --do_train --do_eval --per_device_train_batch_size=8 --seed=1 --num_train_epochs=10 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity -p high
+# nlprun -n story_classifier -g 1 'python run_story_classification.py --model_name_or_path=bert-base-cased --output_dir="stories_c1_ckpt" --project=story_classification --dataset_name=stories --do_train --do_eval --per_device_train_batch_size=8 --seed=1 --num_train_epochs=2 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity -p high
+
+
+
+# ##### < WIKISECTION > #####
+# nlprun -n classifier -g 1 'python run_wiki_classification.py --model_name_or_path=bert-base-cased --output_dir="long_c1_" --project=long_wikisection_classification --dataset_name=long_wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=1 --num_train_epochs=20 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity -p high
+# nlprun -n classifier -g 1 'python run_wiki_classification.py --model_name_or_path=bert-base-cased --output_dir="long_c2_" --project=long_wikisection_classification --dataset_name=long_wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=2 --num_train_epochs=20 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity -p high
+# nlprun -n classifier -g 1 'python run_wiki_classification.py --model_name_or_path=bert-base-cased --output_dir="long_c3_" --project=long_wikisection_classification --dataset_name=long_wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=3 --num_train_epochs=20 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity -p high
+# nlprun -n classifier -g 1 'python run_wikisection.py --model_name_or_path=bert-base-cased --output_dir="long_c2" --project=long_wikisection_classification --dataset_name=long_wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=2 --num_train_epochs=10 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity
+# nlprun -n classifier -g 1 'python run_wikisection.py --model_name_or_path=bert-base-cased --output_dir="long_c3" --project=long_wikisection_classification --dataset_name=long_wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=3 --num_train_epochs=10 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity
+
+# nlprun -n classifier -g 1 'python run_wikisection.py --model_name_or_path=bert-base-cased --output_dir="c1_" --project=wikisection_classification --dataset_name=wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=1 --num_train_epochs=10 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity
+# nlprun -n classifier -g 1 'python run_wikisection.py --model_name_or_path=bert-base-cased --output_dir="c2_" --project=wikisection_classification --dataset_name=wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=2 --num_train_epochs=10 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity
+# nlprun -n classifier -g 1 'python run_wikisection.py --model_name_or_path=bert-base-cased --output_dir="c3_" --project=wikisection_classification --dataset_name=wikisection --do_train --do_eval --per_device_train_batch_size=64 --seed=3 --num_train_epochs=10 --save_total_limit=1 --load_best_model_at_end=True' -a nonstationarity
+

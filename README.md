@@ -5,13 +5,17 @@
 
 **Rose E Wang, Esin Durmus, Noah Goodman, Tatsunori Hashimoto**
 
-![](images/encoder.png)
+![](assets/encoder.png)
 
 ## Introduction
 
-
-**Abstract:** Modern language models can generate high-quality short texts. However, they often meander or are incoherent when generating longer texts. These issues arise from the next-token-only language modeling objective. To address these issues, we introduce Time Control (TC), a language model that implicitly plans via a latent stochastic process. TC does this by learning a representation which maps the dynamics of how text changes in a document to the dynamics of a stochastic process of interest. Using this representation, the language model can generate text by first implicitly generating a document plan via a stochastic process, and then generating text that is consistent with this latent plan. Compared to domain-specific methods and fine-tuning GPT2 across a variety of text domains, TC improves performance on text infilling and discourse coherence. On long text generation settings, TC preserves the text structure both in terms of ordering (up to +40% better) and text length consistency (up to +17% better). Human evaluators also prefer TC's output 28.6% more than the baselines.
-
+**Abstract:** 
+Modern language models can generate high-quality short texts. However, they often meander or are incoherent when generating longer texts. 
+These issues arise from the next-token-only language modeling objective.
+Recent work in self-supervised learning suggests that models can learn good latent representations via contrastive learning, which can be effective for discriminative tasks.
+Our work analyzes the application of contrastive representations for generative tasks, like long text generation.
+We propose one approach for leveraging constrastive representations, which we call Time Control (TC).  TC first learns a contrastive representation of the target text domain, then generates text by decoding from these representations.
+Compared to domain-specific methods and fine-tuning GPT2 across a variety of text domains, TC performs competitively to methods specific for learning sentence representations on discourse coherence. On long text generation settings, TC preserves the text structure both in terms of ordering (up to +15% better) and text length consistency (up to +90% better).
 
 Contents:
 - [Installation](#installation)
@@ -19,23 +23,18 @@ Contents:
 - [Encoder](#encoder)
 - [Decoder](#decoder) 
 - [Generation](#generation)
-
-## TLDR
-
-**Our key contribution is training the encoder to follow a stochastic process of interest via contrastive learning. In our setting, we recover a latent Brownian bridge process. This key contribution can be found in [`language_modeling_via_stochastic_processes/src/objectives/brownian_bridge.py`](https://github.com/rosewang2008/language_modeling_via_stochastic_processes/blob/main/language_modeling_via_stochastic_processes/src/objectives/brownian_bridge.py)** 
-
+- [Analysis](#analysis)
 
 ## Installation
 
-1. Create a new virtual environment `conda create -n lm_via_sp python=3.8`
-2. In this repository, run: 
+0. Follow the commands in `setup.sh`
+1. Make sure you are in the virtual environment: `conda activate language_modeling_via_stochastic_processes`
+2. Install the decoder's version of the transformers library: 
 ```
-pip install -e . # Installing the right libraries for the virtual environment
-cd language_modeling_via_stochastic_processes/transformers
+cd decoder # enter the decoder repo
 pip install -e . # Installing transformers locally; I modified their GPT2 module to take in our learned embeddings for decoding.
 ```
 3. Make sure you have a [wandb](https://wandb.ai/) account!
-4. Change the filepaths to correspond to your own in [language_modeling_via_stochastic_processes/src/constants.py](language_modeling_via_stochastic_processes/src/constants.py).
 
 
 ## Datasets
@@ -57,7 +56,7 @@ It came from [this prior work](https://github.com/sebastianarnold/WikiSection) -
 ### Recipe NLG
 
 The Recipe NLG dataset needs to be downloaded.
-Download the [Recipe NLG dataset](https://recipenlg.cs.put.poznan.pl/dataset) and put the data under `language_modeling_via_stochastic_processes/data/recipe_nlg`.
+Download the [Recipe NLG dataset](https://recipenlg.cs.put.poznan.pl/dataset) and put the data under `encoder/data/recipe_nlg`.
 
 ### TM2
 
@@ -70,61 +69,43 @@ The TicketTalk dataset used in this paper is already included.
 It can be found as the [TicketTalk dataset (all the json files)](https://github.com/google-research-datasets/Taskmaster/tree/master/TM-3-2020/data). 
 
 
-### ROC Stories
-
-The ROC Stories dataset is already included.
-We use the dataset from [Infilling by Language Modeling (ILM)](https://github.com/chrisdonahue/ilm), as it's also one of the baselines we compare against for text infilling.
-
-
 ## Encoder
-**NOTE: I'm still figuring out where to upload the pretrained encoders (~100GB) cost-free and directly from the compute cluster I'm using (rather than scp-ing). Until then, you'll need to train the encoders from scratch...if folks have suggestions, don't hesitate to reach out! I want to make the code as accessible as possible. :)**
 
-The script for training the encoder can be found at [`language_modeling_via_stochastic_processes/scripts/final_encoder_scripts.sh`](https://github.com/rosewang2008/language_modeling_via_stochastic_processes/blob/main/language_modeling_via_stochastic_processes/scripts/final_encoder_scripts.sh)
+Before running experiments, `cd encoder/code; source init_env.sh`
 
-An example command for training a Brownian bridge encoder on the Wikisection dataset: 
+In `encoder/code/scripts/run_ou.py`, set the variable name `ckpt_dir` to your checkpoint directory.
 
-```
-python scripts/train_encoder.py --config-name=brownian_bridge wandb_settings.exp_dir=wikisection_tc32 data_params.name=wikisection model_params.latent_dim=32
-```
+The script for training the encoders (TC, VAE, Brownian, InfoNCE) can be found at `encoder/code/scripts/train_encoders.sh`.
 
-More information is under [language_modeling_via_stochastic_processes/models/README.md](language_modeling_via_stochastic_processes/models/README.md).
+## Encoder experiments 
+
+Before running experiments, `cd encoder/code; source init_env.sh`
+
+In `encoder/code/scripts/run_discourse.py` and `encoder/code/src/systems/discourse_system.py`, set the correct paths to your data directory and repo.
+
+The script for running the discourse coherence experiments can be found at `encoder/code/scripts/discourse.sh`. 
 
 ## Decoder
 
-For training the decoder, you'll need to be in directory `language_modeling_via_stochastic_processes/transformers/examples/pytorch/language-modeling/`.
+For training the decoder, you'll need to be in directory `decoder/examples/pytorch/language-modeling/`.
 
-The script for training the decoder can be found at [`language_modeling_via_stochastic_processes/transformers/examples/pytorch/language-modeling/final_experiments.sh`](https://github.com/rosewang2008/language_modeling_via_stochastic_processes/blob/main/language_modeling_via_stochastic_processes/transformers/examples/pytorch/language-modeling/final_experiments.sh)
+The script for training the decoder can be found at `decoder/examples/pytorch/language-modeling/train_encoders.sh`. Make sure to change the `path2repo` variable.
 
-An example command for training a decoder with the Brownian bridge encoder on Wikisection: 
-
-```
-python run_time_clm.py --model_name_or_path gpt2 --dataset_name wikisection --do_train --do_eval --per_device_eval_batch_size=1 --per_device_train_batch_size=1 --save_total_limit=1 --load_best_model_at_end=True --overwrite_output_dir --num_train_epochs=10 --seed=1 --encoder_filepath=${path2repo}/language_modeling_via_stochastic_processes/models/wikisection/tc32/epoch=99-step=21999.ckpt --latent_dim=32 --output_dir LM_wikisection_32 --evaluation_strategy=steps --eval_steps=1000 --use_contrastive_embeddings
-
-```
-
-**TLDR**: The main thing I changed is in [`language_modeling_via_stochastic_processes/transformers/src/transformers/models/gpt2/modeling_time_gpt2.py`](language_modeling_via_stochastic_processes/transformers/src/transformers/models/gpt2/modeling_time_gpt2.py).
-Specifically, when decoding, I'm using the learned embeddings for running a forward pass on the model: 
-```
-    # in forward(self,....) on line 917-922
-    cl_embeds = self._get_cl_embeddings(raw_text=raw_text,
-                                        cl_feats=cl_feats,
-                                        seq_cl_feats=seq_cl_feats,
-                                        input_ids=input_ids,
-                                        seq_len=inputs_embeds.shape[1])
-    hidden_states = hidden_states + cl_embeds
-```
+You'll need to change the directories to your data directory as appropriate in `run_time_clm.py`
 
 
 ## Generation
-![](images/generation.png)
+![](assets/generation.png)
 
-For generating texts, you'll need to be in directory `language_modeling_via_stochastic_processes/transformers/examples/pytorch/text-generation/`.
+For generating texts, you'll need to be in directory `decoder/transformers/examples/pytorch/text-generation/`.
 
-The script for generating long texts can be found at [`language_modeling_via_stochastic_processes/transformers/examples/pytorch/text-generation/final_experiments.sh`](https://github.com/rosewang2008/nonstationarity/blob/main/language_modeling_via_stochastic_processes/transformers/examples/pytorch/text-generation/final_experiments.sh)
+The script for generating text and measuring per-section length mismatches can be found at `decoder/transformers/examples/pytorch/text-generation/toy_wikisection_generation.sh`.
 
-An example command for generating long Wikisection texts with the Brownian bridge encoder: 
+The script for generating long texts can be found at `decoder/transformers/examples/pytorch/text-generation/long_generation.sh`.
 
-```
-python run_decoding_from_embeddings.py --model_type=gpt2 --model_name_or_path=${path2repo}/language_modeling_via_stochastic_processes/transformers/examples/pytorch/language-modeling/LM_wikisection_32/ --prompt="<|endoftext|>" --num_return_sequences=1 --num_intervals=1000 --method=sample --stop_token="<|endoftext|>" --dataset_name=wikisection --encoder_filepath=${path2repo}/language_modeling_via_stochastic_processes/models/wikisection/tc32/epoch=99-step=75299.ckpt --latent_dim=32 --project=LM_wikisection --no_eos --label=LM_wikisection_32 --seed=0
-```
 
+## Analysis
+
+To collect all the metrics, check out `analysis/run_analysis.sh`. You can run all the evaluations with `source analysis/run_analysis.sh`.
+
+Remember to change the wandb username and project name as what you listed in the encoder and decoder experiments.

@@ -1,0 +1,41 @@
+{
+    "exp_base": null,
+    "exp_name": "tcl-torch",
+    "system": "TCLSystem",
+    "cuda": true,
+    "gpu_device": 8,
+    "seed": 1337,
+    "data_loader_workers": 8,
+    "optimizer": {
+        "lr_scheduler": true
+    },
+    "eval_params": {
+        "seed": 0
+    },
+    "data_params": {
+        "n_obs_per_seg": 200,
+        "data_dim": 5,
+        "n_segments": 20,
+        "data_seed": 1,
+        "n_layers": 2
+    },
+    "model_params": {
+        "n_layers": 2
+    },
+    "loss_params": {
+        "loss": "TCLLoss"
+    },
+    "optim_params": {
+        "batch_size": 512,
+        "decay_steps": 5e4,
+        "decay_factor": 0.1,
+        "learning_rate": 0.01,
+        "moving_average_decay": 0.9999,
+        "momentum": 0.9
+    },
+    "validate": true,
+    "checkpoint_steps": 1e5,
+    "continue_from_checkpoint": true,
+    "num_steps_init": 10000,
+    "num_steps": 20000
+}

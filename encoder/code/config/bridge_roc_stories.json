@@ -1,0 +1,57 @@
+{
+    "exp_base": null,
+    "exp_name": "wiki",
+    "project": "bridge_encoder", 
+    "system": "WikiBrownianBridgeSystem",
+    "comment": "freeze",
+    "cuda": true,
+    "gpu_device": 8,
+    "seed": 1337,
+    "data_loader_workers": 8,
+    "optimizer": {
+        "lr_scheduler": true
+    },
+    "eval_params": {
+        "seed": 0
+    },
+    "data_params": {
+        "name": "roc_stories",
+        "n_obs_per_seg": 3,
+        "data_dim": 4,
+        "n_segments": 4,
+        "latent_dim": 3,
+        "data_seed": 1,
+        "unit": "sentence",
+        "n_layers": 2,
+        "sigma": 1.0,
+        "dataset_loader": "ROCStories",
+        "train_path": "/nlp/scr/rewang/Wikisection/processed/HGD_en_city_train.json",
+        "val_path": "/nlp/scr/rewang/Wikisection/processed/HGD_en_city_validation.json",
+        "test_path": "/nlp/scr/rewang/Wikisection/processed/HGD_en_city_test.json",
+        "p": 0.25
+    },
+    "model_params": {
+        "n_layers": 2,
+        "eps": 1e-6,
+        "hidden_size": 128,
+        "language_encoder": "GPT2" 
+    },
+    "loss_params": {
+        "loss": "BrownianBridgeLoss",
+        "name": "simclr"
+    },
+    "optim_params": {
+        "batch_size": 128,
+        "decay_steps": 5e4,
+        "decay_factor": 0.1,
+        "learning_rate": 0.0001,
+        "moving_average_decay": 0.9999,
+        "momentum": 0.9
+    },
+    "validate": true,
+    "checkpoint_steps": 20,
+    "continue_from_checkpoint": true,
+    "num_steps_init": 10000,
+    "num_steps": 2000,
+    "num_epochs": 100
+}
